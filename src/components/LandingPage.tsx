@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Camera, Mic, User, Upload, Brain, Clock, Shield, Home, Heart, ChevronRight, Star, Play } from 'lucide-react';
+import { Camera, Mic, User, Upload, Brain, Clock, Shield, Home, Heart, ChevronRight, Star, Play, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -20,11 +19,27 @@ const LandingPage = ({ onNavigate, onShowAuth }: LandingPageProps) => {
       {/* Header */}
       <header className="container mx-auto px-4 py-6 relative z-10">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <Heart className="h-5 w-5 text-purple-600" />
+          <div className="flex items-center gap-3">
+            {/* Medical Cross Logo */}
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="relative">
+                  {/* Cross shape */}
+                  <div className="w-6 h-6 relative">
+                    <div className="absolute inset-x-2 inset-y-0 bg-white rounded-sm"></div>
+                    <div className="absolute inset-y-2 inset-x-0 bg-white rounded-sm"></div>
+                  </div>
+                  {/* Heartbeat line */}
+                  <Activity className="absolute -top-1 -left-1 h-4 w-4 text-white opacity-80" strokeWidth={2.5} />
+                </div>
+              </div>
             </div>
-            <h1 className="text-2xl font-bold text-white">EchoRemedy</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                <span className="text-white">Echo</span>
+                <span className="text-white">Remedy</span>
+              </h1>
+            </div>
           </div>
           <Button
             variant="outline"
@@ -248,9 +263,17 @@ const LandingPage = ({ onNavigate, onShowAuth }: LandingPageProps) => {
         <div className="container mx-auto px-4 py-8">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center">
-                  <Heart className="h-4 w-4 text-purple-600" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="relative">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                    <div className="relative">
+                      <div className="w-4 h-4 relative">
+                        <div className="absolute inset-x-1 inset-y-0 bg-white rounded-sm"></div>
+                        <div className="absolute inset-y-1 inset-x-0 bg-white rounded-sm"></div>
+                      </div>
+                      <Activity className="absolute -top-0.5 -left-0.5 h-3 w-3 text-white opacity-80" strokeWidth={2.5} />
+                    </div>
+                  </div>
                 </div>
                 <span className="font-bold text-white">EchoRemedy</span>
               </div>
