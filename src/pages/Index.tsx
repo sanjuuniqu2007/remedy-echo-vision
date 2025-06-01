@@ -9,9 +9,10 @@ import VoiceInput from '@/components/VoiceInput';
 import SymptomHistory from '@/components/SymptomHistory';
 import AuthModal from '@/components/AuthModal';
 import AnalysisResult from '@/components/AnalysisResult';
+import LandingPage from '@/components/LandingPage';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState('home');
+  const [currentView, setCurrentView] = useState('landing');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
@@ -43,6 +44,13 @@ const Index = () => {
 
   const renderContent = () => {
     switch (currentView) {
+      case 'landing':
+        return (
+          <LandingPage 
+            onNavigate={setCurrentView}
+            onShowAuth={() => setShowAuthModal(true)}
+          />
+        );
       case 'upload':
         return <PhotoUpload onAnalysisComplete={handleAnalysisComplete} />;
       case 'voice':
@@ -50,8 +58,8 @@ const Index = () => {
       case 'history':
         return <SymptomHistory symptoms={symptoms} />;
       case 'result':
-        return <AnalysisResult result={analysisResult} onBack={() => setCurrentView('home')} />;
-      default:
+        return <AnalysisResult result={analysisResult} onBack={() => setCurrentView('landing')} />;
+      case 'home':
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
             <div className="container mx-auto px-4 py-8">
@@ -165,17 +173,19 @@ const Index = () => {
             </div>
           </div>
         );
+      default:
+        return null;
     }
   };
 
   return (
     <>
-      {currentView !== 'home' && (
+      {(currentView !== 'landing' && currentView !== 'home') && (
         <div className="bg-white border-b">
           <div className="container mx-auto px-4 py-4">
             <Button 
               variant="ghost" 
-              onClick={() => setCurrentView('home')}
+              onClick={() => setCurrentView('landing')}
               className="mb-2"
             >
               ← Back to Home
