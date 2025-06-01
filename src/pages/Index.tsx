@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Camera, Mic, History, User, Upload, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import SymptomHistory from '@/components/SymptomHistory';
 import AuthModal from '@/components/AuthModal';
 import AnalysisResult from '@/components/AnalysisResult';
 import LandingPage from '@/components/LandingPage';
+import SymptomDashboard from '@/components/SymptomDashboard';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -28,7 +28,7 @@ const Index = () => {
 
   const handleAnalysisComplete = (result) => {
     setAnalysisResult(result);
-    setCurrentView('result');
+    setCurrentView('dashboard'); // Changed from 'result' to 'dashboard'
     
     // Add to symptom history
     const newSymptom = {
@@ -57,8 +57,16 @@ const Index = () => {
         return <VoiceInput onAnalysisComplete={handleAnalysisComplete} />;
       case 'history':
         return <SymptomHistory symptoms={symptoms} />;
+      case 'dashboard':
+        return (
+          <SymptomDashboard 
+            currentAnalysis={analysisResult}
+            onNavigate={setCurrentView}
+            onBack={() => setCurrentView('landing')}
+          />
+        );
       case 'result':
-        return <AnalysisResult result={analysisResult} onBack={() => setCurrentView('landing')} />;
+        return <AnalysisResult result={analysisResult} onBack={() => setCurrentView('dashboard')} />;
       case 'home':
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
