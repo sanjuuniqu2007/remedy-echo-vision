@@ -9,72 +9,7 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      symptoms: {
-        Row: {
-          condition: string
-          created_at: string
-          explanation: string
-          id: string
-          image_url: string | null
-          remedy: string
-          seek_medical_attention: boolean | null
-          urgency: string
-          user_id: string
-          voice_input: string | null
-        }
-        Insert: {
-          condition: string
-          created_at?: string
-          explanation: string
-          id?: string
-          image_url?: string | null
-          remedy: string
-          seek_medical_attention?: boolean | null
-          urgency: string
-          user_id: string
-          voice_input?: string | null
-        }
-        Update: {
-          condition?: string
-          created_at?: string
-          explanation?: string
-          id?: string
-          image_url?: string | null
-          remedy?: string
-          seek_medical_attention?: boolean | null
-          urgency?: string
-          user_id?: string
-          voice_input?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
