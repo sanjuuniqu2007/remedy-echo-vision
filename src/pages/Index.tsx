@@ -6,29 +6,32 @@ import { Badge } from '@/components/ui/badge';
 import PhotoUpload from '@/components/PhotoUpload';
 import VoiceInput from '@/components/VoiceInput';
 import SymptomHistory from '@/components/SymptomHistory';
-import AuthModal from '@/components/AuthModal';
 import AnalysisResult from '@/components/AnalysisResult';
 import LandingPage from '@/components/LandingPage';
 import SymptomDashboard from '@/components/SymptomDashboard';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState('landing');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [symptoms, setSymptoms] = useState([]);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is authenticated (mock for now)
-    const user = localStorage.getItem('echoremedy_user');
-    if (user) {
-      setIsAuthenticated(true);
+    // Load symptoms from localStorage (later we'll load from Supabase)
+    const savedSymptoms = localStorage.getItem('echoremedy_symptoms');
+    if (savedSymptoms) {
+      setSymptoms(JSON.parse(savedSymptoms));
     }
   }, []);
 
   const handleAnalysisComplete = (result) => {
     setAnalysisResult(result);
-    setCurrentView('dashboard'); // Changed from 'result' to 'dashboard'
+    setCurrentView('dashboard');
     
     // Add to symptom history
     const newSymptom = {
@@ -42,15 +45,21 @@ const Index = () => {
     localStorage.setItem('echoremedy_symptoms', JSON.stringify(updatedSymptoms));
   };
 
-  const renderContent = () => {
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setCurrentView('landing');
+      toast({
+        title: "Signed out successfully",
+        description: "You have been signed out of your account."
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  const renderProtectedContent = () => {
     switch (currentView) {
-      case 'landing':
-        return (
-          <LandingPage 
-            onNavigate={setCurrentView}
-            onShowAuth={() => setShowAuthModal(true)}
-          />
-        );
       case 'upload':
         return <PhotoUpload onAnalysisComplete={handleAnalysisComplete} />;
       case 'voice':
@@ -67,6 +76,28 @@ const Index = () => {
         );
       case 'result':
         return <AnalysisResult result={analysisResult} onBack={() => setCurrentView('dashboard')} />;
+      default:
+        return null;
+    }
+  };
+
+  const renderContent = () => {
+    switch (currentView) {
+      case 'landing':
+        return (
+          <LandingPage 
+            onNavigate={(view) => {
+              if (['upload', 'voice', 'history'].includes(view) && !user) {
+                navigate('/auth');
+              } else {
+                setCurrentView(view);
+              }
+            }}
+            onShowAuth={() => navigate('/auth')}
+            user={user}
+            onSignOut={handleSignOut}
+          />
+        );
       case 'home':
         return (
           <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -77,14 +108,30 @@ const Index = () => {
                   <h1 className="text-4xl font-bold text-gray-900 mb-2">EchoRemedy</h1>
                   <p className="text-gray-600">AI-powered symptom analysis and remedy suggestions</p>
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAuthModal(true)}
-                  className="flex items-center gap-2"
-                >
-                  <User className="h-4 w-4" />
-                  {isAuthenticated ? 'Profile' : 'Sign In'}
-                </Button>
+                <div className="flex items-center gap-4">
+                  {user ? (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-gray-600">Welcome, {user.email}</span>
+                      <Button
+                        variant="outline"
+                        onClick={handleSignOut}
+                        className="flex items-center gap-2"
+                      >
+                        <User className="h-4 w-4" />
+                        Sign Out
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/auth')}
+                      className="flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      Sign In
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Disclaimer */}
@@ -102,7 +149,13 @@ const Index = () => {
 
               {/* Main Features */}
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setCurrentView('upload')}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+                  if (!user) {
+                    navigate('/auth');
+                  } else {
+                    setCurrentView('upload');
+                  }
+                }}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                       <div className="p-2 bg-blue-100 rounded-lg">
@@ -122,7 +175,13 @@ const Index = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setCurrentView('voice')}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => {
+                  if (!user) {
+                    navigate('/auth');
+                  } else {
+                    setCurrentView('voice');
+                  }
+                }}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3">
                       <div className="p-2 bg-green-100 rounded-lg">
@@ -152,29 +211,38 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {symptoms.length > 0 ? (
-                    <div className="space-y-3">
-                      {symptoms.slice(0, 3).map((symptom) => (
-                        <div key={symptom.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div>
-                            <p className="font-medium">{symptom.condition}</p>
-                            <p className="text-sm text-gray-600">{new Date(symptom.date).toLocaleDateString()}</p>
+                  {user ? (
+                    symptoms.length > 0 ? (
+                      <div className="space-y-3">
+                        {symptoms.slice(0, 3).map((symptom) => (
+                          <div key={symptom.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <p className="font-medium">{symptom.condition}</p>
+                              <p className="text-sm text-gray-600">{new Date(symptom.date).toLocaleDateString()}</p>
+                            </div>
+                            <Badge variant={symptom.urgency === 'High' ? 'destructive' : symptom.urgency === 'Medium' ? 'default' : 'secondary'}>
+                              {symptom.urgency}
+                            </Badge>
                           </div>
-                          <Badge variant={symptom.urgency === 'High' ? 'destructive' : symptom.urgency === 'Medium' ? 'default' : 'secondary'}>
-                            {symptom.urgency}
-                          </Badge>
-                        </div>
-                      ))}
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setCurrentView('history')}
-                      >
-                        View All History
+                        ))}
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setCurrentView('history')}
+                        >
+                          View All History
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-center py-4">No analysis history yet. Start by uploading a photo or using voice input.</p>
+                    )
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500 mb-4">Sign in to view your analysis history</p>
+                      <Button onClick={() => navigate('/auth')}>
+                        Sign In to Continue
                       </Button>
                     </div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-4">No analysis history yet. Start by uploading a photo or using voice input.</p>
                   )}
                 </CardContent>
               </Card>
@@ -182,7 +250,7 @@ const Index = () => {
           </div>
         );
       default:
-        return null;
+        return user ? renderProtectedContent() : null;
     }
   };
 
@@ -202,17 +270,12 @@ const Index = () => {
         </div>
       )}
       
-      {renderContent()}
-      
-      {showAuthModal && (
-        <AuthModal 
-          isOpen={showAuthModal} 
-          onClose={() => setShowAuthModal(false)}
-          onAuthSuccess={() => {
-            setIsAuthenticated(true);
-            setShowAuthModal(false);
-          }}
-        />
+      {(['upload', 'voice', 'history', 'dashboard', 'result'].includes(currentView)) ? (
+        <ProtectedRoute>
+          {renderProtectedContent()}
+        </ProtectedRoute>
+      ) : (
+        renderContent()
       )}
     </>
   );
